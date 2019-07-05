@@ -9,25 +9,19 @@
 module darg_plus.validators;
 
 
-/// Basic format of validation error messages.
-enum validationErrorFormat = "invalid option %s: %s.";
+import darg_plus.exception : ValidationError;
+static import std.exception;
 
 /**
     General validation function.
 
     Params:
-        option = Name of the option to be validated
         msg    = Error details in case of failure
         value  = Value to be validated
     Throws:
         darg_plus.exception.ValidationError if `!isValid`.
 */
-void validate(string option)(bool isValid, lazy string msg = "must be greater than zero")
-{
-    import darg_plus.exception : ValidationError;
-
-    enforce!ValidationError(isValid, format!validationErrorFormat(option, msg));
-}
+alias validate = std.exception.enforce!ValidationError;
 
 /**
     Validates that value is positive.
@@ -40,9 +34,9 @@ void validate(string option)(bool isValid, lazy string msg = "must be greater th
     See_also:
         validate
 */
-void validatePositive(string option, V)(V value, lazy string msg = "must be greater than zero")
+void validatePositive(V)(V value, lazy string msg = "must be greater than zero")
 {
-    validate!option(0 < value, msg);
+    validate(0 < value, msg);
 }
 
 /**
@@ -57,7 +51,7 @@ void validatePositive(string option, V)(V value, lazy string msg = "must be grea
     See_also:
         validate
 */
-void validateRangeNonNegativeAscending(DestType, string option)(
+void validateRangeNonNegativeAscending(DestType)(
     in string rangeString,
     lazy string msg = "0 <= <from> < <to> must hold",
 )
@@ -70,7 +64,7 @@ void validateRangeNonNegativeAscending(DestType, string option)(
         auto from = rangeBounds[0];
         auto to = rangeBounds[1];
 
-        validate!option(0 <= from && from < to, msg);
+        validate(0 <= from && from < to, msg);
     }
 }
 
@@ -86,16 +80,19 @@ void validateRangeNonNegativeAscending(DestType, string option)(
     See_also:
         validate, std.file.exists
 */
-void validateFilesExist(string option)(in string[] files, lazy string msg = "cannot open file `%s`")
+void validateFilesExist(in string[] files, lazy string msg = "cannot open file `%s`")
 {
     foreach (file; files)
         validateFileExists(file, msg);
 }
 
 /// ditto
-void validateFileExists(string option)(in string file, lazy string msg = "cannot open file `%s`")
+void validateFileExists(in string file, lazy string msg = "cannot open file `%s`")
 {
-    validate!option(file.exists, format(msg, file));
+    import std.file : exists;
+    import std.format : format;
+
+    validate(file.exists, format(msg, file));
 }
 
 /**
@@ -110,12 +107,15 @@ void validateFileExists(string option)(in string file, lazy string msg = "cannot
     See_also:
         validate, std.algorithm.searching.endsWith
 */
-void validateFileExtension(string option, extensions...)(
+void validateFileExtension(extensions...)(
     in string file,
     lazy string msg = "expected one of %-(%s, %) but got %s",
 )
         if (allSatisfy!(isSomeString, staticMap!(typeOf, extensions)))
 {
+    import std.algorithm : endsWith;
+    import std.format : format;
+
     validate(file.endsWith(extensions), format(msg, [extensions], file));
 }
 
@@ -132,11 +132,15 @@ private alias typeOf(alias T) = typeof(T);
     See_also:
         validate, std.algorithm.searching.endsWith
 */
-void validateFileWritable(string option)(
-    string file,
-    lazy string msg = "cannot open file `%s` for writing: %s",
-)
+void validateFileWritable(string file, lazy string msg = "cannot open file `%s` for writing: %s")
 {
+    import std.exception : ErrnoException;
+    import std.file :
+        exists,
+        remove;
+    import std.format : format;
+    import std.stdio : File;
+
     auto deleteAfterwards = !file.exists;
 
     try
@@ -145,7 +149,7 @@ void validateFileWritable(string option)(
     }
     catch (ErrnoException e)
     {
-        throw new CLIException(format(msg, file, e.msg));
+        validate(false, format(msg, file, e.msg));
     }
 
     if (deleteAfterwards)
