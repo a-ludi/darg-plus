@@ -202,6 +202,8 @@ Options retroInitFromConfig(Options)(ref Options options, in string configFile)
     return retroInitFromConfig(options, parseConfig(configFile));
 }
 
+
+/// ditto
 Options retroInitFromConfig(Options)(ref Options options, in Json config)
 {
     import std.format : format;

@@ -16,8 +16,8 @@ static import std.exception;
     General validation function.
 
     Params:
-        msg    = Error details in case of failure
         value  = Value to be validated
+        msg    = Error details in case of failure
     Throws:
         darg_plus.exception.ValidationError if `!isValid`.
 */
@@ -28,6 +28,7 @@ alias validate = std.exception.enforce!ValidationError;
 
     Params:
         value  = Value to be validated
+        msg    = Error details in case of failure
     Throws:
         darg_plus.exception.ValidationError
             if value is less than or equal to zero.
@@ -45,6 +46,7 @@ void validatePositive(V)(V value, lazy string msg = "must be greater than zero")
 
     Params:
         rangeString  = Range to be validated
+        msg    = Error details in case of failure
     Throws:
         darg_plus.exception.ValidationError
             unless rangeString is `null` or `0 <= x && x < y`.
@@ -74,6 +76,7 @@ void validateRangeNonNegativeAscending(DestType)(
     Params:
         file  = File name of the file to be tested.
         files = File names of the files to be tested.
+        msg    = Error details in case of failure
     Throws:
         darg_plus.exception.ValidationError
             unless rangeString is `null` or `0 <= x && x < y`.
@@ -99,8 +102,9 @@ void validateFileExists(in string file, lazy string msg = "cannot open file `%s`
     Validates that the file has one of the allowed extensions.
 
     Params:
-        file        = File name of the file to be tested.
         extensions  = Allowed extensions including a leading dot.
+        file        = File name of the file to be tested.
+        msg    = Error details in case of failure
     Throws:
         darg_plus.exception.ValidationError
             if the extension of file is not in the list of allowed extensions.
@@ -109,7 +113,7 @@ void validateFileExists(in string file, lazy string msg = "cannot open file `%s`
 */
 void validateFileExtension(extensions...)(
     in string file,
-    lazy string msg = "expected one of %-(%s, %) but got %s",
+    lazy string msg = "invalid file extension: expected one of %-(%s, %) but got %s",
 )
         if (allSatisfy!(isSomeString, staticMap!(typeOf, extensions)))
 {
@@ -126,6 +130,7 @@ private alias typeOf(alias T) = typeof(T);
 
     Params:
         file        = File name of the file to be tested.
+        msg    = Error details in case of failure
     Throws:
         darg_plus.exception.ValidationError
             if file cannot be opened for writing.

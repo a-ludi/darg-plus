@@ -33,12 +33,9 @@ private:
 /**
     Decorate methods of the options struct to declare a hook that executes
     before all validations.
-
-    Params:
-        priority = the `Priority` of the hook. Higher priorities get executed
-                   first.
 */
 struct PreValidate {
+    /// Priority of execution. Higher priorities get executed first.
     Priority priority;
 }
 
@@ -46,12 +43,9 @@ struct PreValidate {
 /**
     Decorate methods of the options struct to declare a hook that executes
     after all validations.
-
-    Params:
-        priority = the `Priority` of the hook. Higher priorities get executed
-                   first.
 */
 struct PostValidate {
+    /// Priority of execution. Higher priorities get executed first.
     Priority priority;
 }
 
@@ -59,18 +53,16 @@ struct PostValidate {
 /**
     Decorate methods of the options struct to declare a hook that executes
     just before end of program execution.
-
-    Params:
-        priority = the `Priority` of the hook. Higher priorities get executed
-                   first.
 */
 struct CleanUp {
+    /// Priority of execution. Higher priorities get executed first.
     Priority priority;
 }
 
 
 /**
-    Defines the priority of a hook.
+    Defines the priority of execution of a hook. Higher priorities get
+    executed first.
 
     See_also:
         PreValidate, PostValidate
@@ -156,16 +148,10 @@ Options processOptions(Options)(Options options)
 
             try
             {
-                static if (is(typeof(validate(value))))
-                    cast(void) validate(value);
-                else static if (is(typeof(validate(value, options))))
+                static if (is(typeof(validate(value, options))))
                     cast(void) validate(value, options);
                 else
-                    static assert(0, format!q"{
-                        validator for %s.%s should have a signature of
-                        `void (T value);` or `void (T value, Options options);` -
-                        maybe the validator does not compile?
-                    }"(Options.stringof, symbol.stringof).wrap(size_t.max));
+                    cast(void) validate(value);
             }
             catch (Exception cause)
             {
