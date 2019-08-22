@@ -70,6 +70,9 @@ void validateRangeNonNegativeAscending(DestType)(
     }
 }
 
+
+import std.range.primitives : isInputRange;
+
 /**
     Validates that the files exist.
 
@@ -83,14 +86,14 @@ void validateRangeNonNegativeAscending(DestType)(
     See_also:
         validate, std.file.exists
 */
-void validateFilesExist(in string[] files, lazy string msg = "cannot open file `%s`")
+void validateFilesExist(R)(R files, lazy string msg = "cannot open file `%s`") if (isInputRange!R)
 {
     foreach (file; files)
         validateFileExists(file, msg);
 }
 
 /// ditto
-void validateFileExists(in string file, lazy string msg = "cannot open file `%s`")
+void validateFileExists(S)(in S file, lazy string msg = "cannot open file `%s`")
 {
     import std.file : exists;
     import std.format : format;
