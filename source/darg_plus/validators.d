@@ -98,6 +98,12 @@ void validateFileExists(in string file, lazy string msg = "cannot open file `%s`
     validate(file.exists, format(msg, file));
 }
 
+
+import std.meta :
+    allSatisfy,
+    staticMap;
+import std.traits : isSomeString;
+
 /**
     Validates that the file has one of the allowed extensions.
 
