@@ -117,19 +117,6 @@ class ConfigFileException : Exception
     /**
         Params:
             msg  = The message for the exception.
-            file = The file where the exception occurred.
-            line = The line number where the exception occurred.
-            next = The previous exception in the chain of exceptions, if any.
-    */
-    this(string msg, string file = __FILE__, size_t line = __LINE__,
-         Throwable next = null) @nogc @safe pure nothrow
-    {
-        super(msg, file, line, next);
-    }
-
-    /**
-        Params:
-            msg  = The message for the exception.
             next = The previous exception in the chain of exceptions.
             file = The file where the exception occurred.
             line = The line number where the exception occurred.
@@ -149,7 +136,7 @@ class ConfigFileException : Exception
             line        = The line number where the exception occurred.
             next        = The previous exception in the chain of exceptions, if any.
     */
-    this(string msg, string configKey, Json configValue, string file = __FILE__, size_t line = __LINE__,
+    this(string msg, string configKey, Json configValue = Json.init, string file = __FILE__, size_t line = __LINE__,
          Throwable next = null) @nogc @safe pure nothrow
     {
         super(msg, file, line, next);
@@ -199,7 +186,7 @@ T enforce(T)(
 /// Retroactively initialize options from config.
 Options retroInitFromConfig(Options)(ref Options options, in string configFile)
 {
-    return retroInitFromConfig(options, parseConfig(configFile));
+    return retroInitFromConfig(options, parseConfig!Options(configFile));
 }
 
 
@@ -215,6 +202,7 @@ Options retroInitFromConfig(Options)(ref Options options, in Json config)
         isSomeString,
         isSomeString,
         isStaticArray;
+    import std.math : isNaN;
 
     enum defaultOptions = Options.init;
     Options optionsFromConfig = parseConfig!Options(config);
@@ -280,6 +268,8 @@ Options retroInitFromConfig(Options)(ref Options options, in Json config)
 /// Initialize options using config.
 Options parseConfig(Options)(in string configFile)
 {
+    import vibe.data.json : parseJson;
+
     auto configContent = readConfigFile(configFile);
     auto configValues = parseJson(
         configContent,
@@ -336,6 +326,8 @@ void validateConfig(Options)(in Json config)
     import std.algorithm : startsWith;
     import std.format : format;
     import std.meta : Alias;
+
+    enforce(config.type == Json.Type.object, "config must contain a single object");
 
     configLoop: foreach (configKey, configValue; config.byKeyValue)
     {
@@ -417,6 +409,7 @@ template configNamesOf(alias symbol)
 
 void assignConfigValue(string member, Options)(ref Options options, string configKey, Json configValue)
 {
+    import std.conv : to;
     import std.traits : isAssignable;
 
     alias SymbolType = typeof(__traits(getMember, options, member));
