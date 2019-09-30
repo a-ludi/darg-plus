@@ -157,6 +157,10 @@ void validateFileWritable(string file, lazy string msg = "cannot open file `%s` 
 
     auto deleteAfterwards = !file.exists;
 
+    scope (exit)
+        if (deleteAfterwards)
+            remove(file);
+
     try
     {
         cast(void) File(file, "a");
@@ -166,6 +170,4 @@ void validateFileWritable(string file, lazy string msg = "cannot open file `%s` 
         validate(false, format(msg, file, e.msg));
     }
 
-    if (deleteAfterwards)
-        remove(file);
 }
