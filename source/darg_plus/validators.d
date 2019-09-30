@@ -169,5 +169,61 @@ void validateFileWritable(string file, lazy string msg = "cannot open file `%s` 
     {
         validate(false, format(msg, file, e.msg));
     }
+}
 
+/**
+    Validates that `dir` is a directory and files can be created inside of it.
+
+    Params:
+        dir    = Path of the directory to be tested.
+        msg    = Error details in case of failure
+    Throws:
+        darg_plus.exception.ValidationError
+            if `dir` is not a directory or files cannot be created within.
+    See_also:
+        validate, std.algorithm.searching.endsWith
+*/
+void validateWritableDirectory(string dir, lazy string msg = "`%s` is not a writable directory: %s")
+{
+    import core.sys.posix.stdlib : mkstemp;
+    import core.sys.posix.stdio :
+        fclose,
+        fdopen;
+    import std.exception :
+        errnoEnforce,
+        ErrnoException;
+    import std.file :
+        isDir,
+        remove;
+    import std.format : format;
+    import std.path : buildPath;
+    import std.string :
+        fromStringz,
+        toStringz;
+    import std.traits : ReturnType;
+
+    validate(isDir(dir), format(msg, dir, "not a directory"));
+
+    char* tempFileName;
+
+    scope (exit)
+    {
+        if (tempFileName !is null)
+            remove(fromStringz(tempFileName));
+    }
+
+    try
+    {
+        tempFileName = cast(char*) toStringz(buildPath(dir, ".iswritable-XXXXXX"));
+
+        auto fd = mkstemp(tempFileName);
+
+        errnoEnforce(fd != -1, "cannot create temporary file");
+
+        fclose(fdopen(fd, "r+"));
+    }
+    catch (ErrnoException e)
+    {
+        validate(false, format(msg, dir, e.msg));
+    }
 }
