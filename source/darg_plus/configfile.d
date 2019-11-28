@@ -193,8 +193,11 @@ Options retroInitFromConfig(Options)(ref Options options, in string configFile)
 /// ditto
 Options retroInitFromConfig(Options)(ref Options options, in Json config)
 {
+    import std.algorithm : all;
     import std.format : format;
+    import std.math : isNaN;
     import std.meta : Alias;
+    import std.range.primitives : ElementType;
     import std.traits :
         getUDAs,
         isArray,
@@ -202,7 +205,6 @@ Options retroInitFromConfig(Options)(ref Options options, in Json config)
         isSomeString,
         isSomeString,
         isStaticArray;
-    import std.math : isNaN;
 
     enum defaultOptions = Options.init;
     Options optionsFromConfig = parseConfig!Options(config);
