@@ -10,6 +10,8 @@ module darg_plus.validators;
 
 
 import darg_plus.exception : ValidationError;
+import std.algorithm;
+import std.format;
 static import std.exception;
 
 /**
@@ -38,6 +40,30 @@ alias validate = std.exception.enforce!ValidationError;
 void validatePositive(V)(V value, lazy string msg = "must be greater than zero")
 {
     validate(0 < value, msg);
+}
+
+/**
+    Validates that value is in given interval.
+
+    Params:
+        value  = Value to be validated
+        msg    = Error details in case of failure
+    Throws:
+        darg_plus.exception.ValidationError
+            if value is less than or equal to zero.
+    See_also:
+        validate
+*/
+void validateWithin(const char[2] bounds, V)(V value, V from, V to, lazy string msg = "must be within %c%s, %s%c")
+    if (bounds[0].among('(', '[') && bounds[1].among(')', ']'))
+{
+    enum cmpFrom = bounds[0] == '(' ? "<" : "<=";
+    enum cmpTo = bounds[1] == ')' ? "<" : "<=";
+
+    validate(
+        mixin("from " ~ cmpFrom ~ " value && value " ~ cmpTo ~ "to"),
+        msg.format(bounds[0], from, to, bounds[1]),
+    );
 }
 
 /**
