@@ -189,9 +189,14 @@ Options retroInitFromConfig(Options)(ref Options options, in string configFile)
     return retroInitFromConfig(options, parseConfig!Options(configFile));
 }
 
-
 /// ditto
 Options retroInitFromConfig(Options)(ref Options options, in Json config)
+{
+    return retroInitFromConfig(options, parseConfig!Options(config));
+}
+
+/// ditto
+Options retroInitFromConfig(Options)(ref Options options, Options optionsFromConfig)
 {
     import std.algorithm : all;
     import std.format : format;
@@ -207,7 +212,6 @@ Options retroInitFromConfig(Options)(ref Options options, in Json config)
         isStaticArray;
 
     enum defaultOptions = Options.init;
-    Options optionsFromConfig = parseConfig!Options(config);
 
     static foreach (member; __traits(allMembers, Options))
     {{
