@@ -29,6 +29,16 @@ class UsageRequested : CLIException
 }
 
 
+/// Convenience class for use with `--version` flag.
+class VersionRequested : CLIException
+{
+    import std.exception : basicExceptionCtors;
+
+    ///
+    mixin basicExceptionCtors;
+}
+
+
 /// Convenience class for use with `--usage` flag.
 class ValidationError : CLIException
 {
