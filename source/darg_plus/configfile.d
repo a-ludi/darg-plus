@@ -478,7 +478,19 @@ auto getConfigValue(SymbolType)(string configKey, Json configValue)
     else static if (is(SymbolType == OptionFlag) || is(SymbolType : bool))
         return configValue.get!bool.to!SymbolType;
     else static if (isFloatingPoint!SymbolType)
-        return configValue.get!double.to!SymbolType;
+    {
+        if (configValue.type == Json.Type.int_)
+            return configValue.get!long.to!SymbolType;
+        else if (configValue.type == Json.Type.float_)
+            return configValue.get!double.to!SymbolType;
+        else
+            throw new ConfigFileException(
+                "Got JSON of type " ~ configValue.type.to!string ~
+                ", expected int_ or float_.",
+                configKey,
+                configValue,
+            );
+    }
     else static if (isIntegral!SymbolType && isUnsigned!SymbolType)
         return configValue.get!ulong.to!SymbolType;
     else static if (isIntegral!SymbolType && !isUnsigned!SymbolType)
