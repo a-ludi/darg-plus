@@ -67,11 +67,62 @@ struct CleanUp {
     See_also:
         PreValidate, PostValidate
 */
-enum Priority
+struct Priority
 {
-    low,
-    medium,
-    high,
+    /// Pre-defined priorities provide good readbility and suffice in most
+    /// cases.
+    enum min = Priority(int.min);
+    /// ditto
+    enum low = Priority(-100);
+    /// ditto
+    enum medium = Priority(0);
+    /// ditto
+    enum high = Priority(100);
+    /// ditto
+    enum max = Priority(int.max);
+
+    int priority;
+    alias priority this;
+
+
+    ///
+    this(int priority) pure nothrow @safe @nogc
+    {
+        this.priority = priority;
+    }
+
+
+    /// Operator overloads give fine-grained control over priorities.
+    Priority opBinary(string op)(int offset) const pure nothrow @safe @nogc
+    {
+        return mixin("Priority(priority "~op~" offset)");
+    }
+
+
+    /// ditto
+    Priority opBinaryRight(string op)(int offset) const pure nothrow @safe @nogc
+    {
+        return mixin("Priority(offset "~op~" priority)");
+    }
+}
+
+/// Operator overloads give fine-grained control over priorities.
+unittest
+{
+    struct Options
+    {
+        @PreValidate(Priority.max)
+        void initialPreparationStep1() { }
+
+        @PreValidate(Priority.max - 1)
+        void initialPreparationStep2() { }
+
+        @PreValidate(Priority.medium)
+        void hookSetDefaultValue() { }
+
+        @PostValidate(Priority.medium)
+        void hookCreateTmpdir() { }
+    }
 }
 
 private template cmpPriority(T)
